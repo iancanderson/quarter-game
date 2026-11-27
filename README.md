@@ -1,6 +1,15 @@
 # Steel City Pusher
 
-A football-themed arcade coin pusher that runs in a phone browser. Open `index.html` to play.
+A football-themed arcade coin pusher that runs in a phone browser.
+
+Play it at https://iancanderson.github.io/quarter-game/ once GitHub Pages is on.
+
+## Files
+
+- `game.html` is the source. It's written as a Claude artifact, so it has no `<html>`/`<head>` wrapper.
+- `index.html` is the full web page GitHub Pages serves. It's generated: edit `game.html`, then run `./build.sh`.
+
+## How to play
 
 - Tap or hold **HIKE!** to drop a coin from the sliding arm.
 - Coins pushed over the goal line return to your bank and earn tickets. Coins off the sides are out of bounds.

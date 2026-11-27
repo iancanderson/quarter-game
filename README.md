@@ -7,3 +7,4 @@ A football-themed arcade coin pusher that runs in a phone browser. Open `index.h
 - Drop a coin between the moving goalposts to spin the bonus wheel.
 - Push player cards and Super Bowl rings into the end zone to fill your locker.
 - Every ring you win flies onto the **Super Bowl Hand**. Fill all five fingers to unlock the **Super Bowl Spin** (500 tickets, coin avalanche, Two-Minute Drill, legend card, 250 tickets + 25 coins, or a 1,000-ticket jackpot).
+- Each ring triggers a celebration and a story screen about that Super Bowl (score, venue, winning play, MVP, coach). Five rings on the hand sets off fireworks before the Super Bowl Spin.

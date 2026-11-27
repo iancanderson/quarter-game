@@ -77,8 +77,53 @@ canvas#field { display: block; border-radius: 10px; touch-action: none; cursor: 
 .handrow { display: flex; gap: 12px; align-items: center; background: var(--steel-2); border: 1px solid var(--line); border-radius: 8px; padding: 4px 12px 4px 6px; }
 .handrow.full { border-color: var(--gold); animation: glow .55s ease-in-out infinite alternate; }
 @keyframes glow { from { box-shadow: 0 0 0 1px var(--gold), 0 0 8px rgba(255,182,18,.3); } to { box-shadow: 0 0 0 2px var(--gold), 0 0 26px rgba(255,182,18,.75); } }
-.hand { flex: none; width: 132px; height: 66px; }
-.hand canvas { display: block; width: 132px; height: 66px; }
+.hand { flex: none; width: 118px; }
+.hand svg { display: block; width: 118px; height: auto; }
+.ringpop { transform-box: fill-box; transform-origin: center; animation: ringpop .75s cubic-bezier(.2,1.8,.4,1); }
+@keyframes ringpop { 0% { transform: scale(2.6); opacity: 0; } 50% { opacity: 1; } 100% { transform: scale(1); } }
+#fx { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 40; pointer-events: none; }
+#flash { position: fixed; inset: 0; z-index: 35; pointer-events: none; opacity: 0; background: radial-gradient(circle at 50% 70%, rgba(255,214,90,.95), rgba(255,182,18,.55) 45%, rgba(255,182,18,0) 80%); }
+.story {
+  position: relative; width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto;
+  background: linear-gradient(180deg, #232830, #121418 55%); border: 2px solid var(--gold); border-radius: 14px;
+  padding: 18px; display: flex; flex-direction: column; gap: 10px; text-align: center;
+  box-shadow: 0 0 0 4px #000, 0 0 70px rgba(255,182,18,.4);
+  animation: storyin .55s cubic-bezier(.2,1.5,.4,1);
+}
+.story .hike { font-size: 21px; padding: 10px 0 8px; }
+@keyframes storyin { from { transform: scale(.5) rotate(-4deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.kicker { font: 800 12px/1 var(--body); letter-spacing: .2em; color: #111; background: var(--gold); align-self: center; padding: 5px 10px; border-radius: 99px; text-transform: uppercase; }
+.story h2 { font-family: var(--display); font-weight: 400; font-size: clamp(28px, 8.5vw, 40px); color: var(--gold); margin: 0; line-height: 1.05; text-wrap: balance; text-shadow: 0 3px 0 #000; }
+.story .meta { color: var(--muted); font-size: 15px; font-weight: 600; }
+.score { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; background: #0b0c0e; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; gap: 8px; }
+.score .tm span { display: block; font-size: 12px; letter-spacing: .14em; font-weight: 800; text-transform: uppercase; color: var(--muted); }
+.score .tm b { font-family: var(--display); font-weight: 400; font-size: 34px; line-height: 1.1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.score .tm.win span { color: var(--gold); }
+.score .tm.win b { color: var(--gold); }
+.score .fin { font-size: 11px; letter-spacing: .18em; font-weight: 800; color: var(--muted); }
+.ringbig { display: flex; justify-content: center; padding: 2px 0; }
+.ringbig canvas { animation: bob 2.4s ease-in-out infinite; filter: drop-shadow(0 0 18px rgba(255,182,18,.75)); }
+@keyframes bob { 50% { transform: translateY(-6px) rotate(-5deg) scale(1.04); } }
+.story h3 { margin: 0; font-size: 13px; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); text-align: left; }
+.story p { margin: 0; font-size: 17px; line-height: 1.38; text-align: left; text-wrap: pretty; }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; }
+.facts div { background: #0b0c0e; border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; text-align: left; min-width: 0; }
+.facts dt { font-size: 11px; letter-spacing: .14em; color: var(--muted); font-weight: 800; text-transform: uppercase; }
+.facts dd { margin: 0; font-size: 16px; font-weight: 700; }
+.celebrate { overflow: hidden; }
+.celebrate::before { content: ""; position: absolute; inset: -60%; background: repeating-conic-gradient(rgba(255,182,18,.17) 0 9deg, transparent 9deg 18deg); animation: spin 16s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.celeb { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; width: 100%; max-width: 420px; animation: storyin .6s cubic-bezier(.2,1.5,.4,1); }
+.celeb .huge {
+  font-family: var(--display); font-weight: 400; margin: 0; font-size: clamp(46px, 15vw, 72px); line-height: 1;
+  background: linear-gradient(90deg, #c78a00, #fff3b0, #ffb612, #fff3b0, #c78a00); background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: shimmer 1.6s linear infinite, thump .9s ease-in-out infinite; filter: drop-shadow(0 4px 0 #000);
+}
+@keyframes shimmer { to { background-position: 200% 0; } }
+@keyframes thump { 50% { transform: scale(1.07); } }
+#bigHand { width: min(78vw, 300px); height: auto; filter: drop-shadow(0 0 26px rgba(255,182,18,.65)); }
+.celeb p { margin: 0; font-size: 18px; font-weight: 600; max-width: 30ch; }
 .handinfo { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .handinfo .lbl { font-size: 11px; letter-spacing: .14em; color: var(--muted); font-weight: 700; text-transform: uppercase; }
 .handcount { font-family: var(--display); color: var(--gold); font-size: 18px; line-height: 1.1; font-variant-numeric: tabular-nums; }
@@ -144,7 +189,7 @@ canvas#field { display: block; border-radius: 10px; touch-action: none; cursor: 
 .danger { background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; font: 700 13px/1 var(--body); letter-spacing: .1em; text-transform: uppercase; cursor: pointer; align-self: flex-start; }
 .danger.armed { color: #fff; background: var(--red); border-color: var(--red); }
 @media (max-width: 380px) { .cards { grid-template-columns: repeat(3, 1fr); } .stat .val { font-size: 20px; } }
-@media (prefers-reduced-motion: reduce) { .toast { animation: fade .4s ease-in 2.2s forwards; } .wheel { transition-duration: .6s; } }
+@media (prefers-reduced-motion: reduce) { .toast { animation: fade .4s ease-in 2.2s forwards; } .wheel { transition-duration: .6s; } .story, .celeb, .ringpop, .ringbig canvas, .celeb .huge, .celebrate::before { animation: none; } }
 </style>
 
 <div class="app">
@@ -162,7 +207,7 @@ canvas#field { display: block; border-radius: 10px; touch-action: none; cursor: 
   </div>
   <div class="controls">
     <div class="handrow" id="handRow">
-      <div class="hand"><canvas id="handCv" aria-label="Super Bowl hand: rings you win go on its fingers"></canvas></div>
+      <div class="hand"><svg id="handSvg" viewBox="0 0 140 94" role="img" aria-label="Super Bowl hand: rings you win go on its fingers"></svg></div>
       <div class="handinfo">
         <span class="lbl">Super Bowl Hand</span>
         <span class="handcount" id="handCount">0 of 5 rings</span>
@@ -183,6 +228,40 @@ canvas#field { display: block; border-radius: 10px; touch-action: none; cursor: 
     <p id="wheelMsg">Spinning…</p>
   </div>
 </div>
+
+<div class="overlay" id="storyOv" hidden>
+  <div class="story" role="dialog" aria-labelledby="stTitle">
+    <span class="kicker" id="stKicker">New ring!</span>
+    <h2 id="stTitle">Super Bowl</h2>
+    <div class="meta" id="stMeta"></div>
+    <div class="score">
+      <div class="tm win"><span>Steelers</span><b id="stUs">0</b></div>
+      <div class="fin">FINAL</div>
+      <div class="tm"><span id="stOppName">Opponent</span><b id="stThem">0</b></div>
+    </div>
+    <div class="ringbig" id="stRing"></div>
+    <h3 id="stPlayHead">The winning play</h3>
+    <p id="stPlay"></p>
+    <dl class="facts">
+      <div><dt>MVP</dt><dd id="stMvp"></dd></div>
+      <div><dt>Head coach</dt><dd id="stCoach"></dd></div>
+    </dl>
+    <button class="hike" id="stBtn" type="button">Slide it on the hand<small id="stBtnSub">+50 tickets</small></button>
+  </div>
+</div>
+
+<div class="overlay celebrate" id="celebOv" hidden>
+  <div class="celeb" role="dialog" aria-label="Five rings">
+    <span class="kicker">Super Bowl Hand complete</span>
+    <h2 class="huge">FIVE RINGS!</h2>
+    <svg id="bigHand" viewBox="0 0 140 94" aria-hidden="true"></svg>
+    <p>A hand full of championships earns the Super Bowl Spin. Bigger prizes, up to a 1,000-ticket jackpot.</p>
+    <button class="hike" id="celebBtn" type="button">SPIN IT!<small>Super Bowl Spin</small></button>
+  </div>
+</div>
+
+<canvas id="fx" aria-hidden="true"></canvas>
+<div id="flash" aria-hidden="true"></div>
 
 <div class="overlay" id="lockerOv" hidden>
   <div class="panel" role="dialog" aria-label="Locker room">
@@ -217,22 +296,34 @@ const PLAYERS = [
   { id: 'boswell',    name: 'Chris Boswell',  pos: 'K',   tier: 'star' },
 ];
 const RINGS = [
-  { id: 'IX',    year: 1975, vs: 'Vikings',   score: '16–6' },
-  { id: 'X',     year: 1976, vs: 'Cowboys',   score: '21–17' },
-  { id: 'XIII',  year: 1979, vs: 'Cowboys',   score: '35–31' },
-  { id: 'XIV',   year: 1980, vs: 'Rams',      score: '31–19' },
-  { id: 'XL',    year: 2006, vs: 'Seahawks',  score: '21–10' },
-  { id: 'XLIII', year: 2009, vs: 'Cardinals', score: '27–23' },
+  { id: 'IX', year: 1975, vs: 'Vikings', score: '16–6', us: 16, them: 6, date: 'January 12, 1975', venue: 'Tulane Stadium, New Orleans',
+    mvp: 'Franco Harris, RB', coach: 'Chuck Noll', head: 'The first one',
+    play: 'Dwight White tackled Fran Tarkenton in the end zone for a safety, the first points of the game. Franco Harris ran for 158 yards, and Terry Bradshaw\'s 4-yard touchdown pass to Larry Brown in the fourth quarter put it away. The Steel Curtain held Minnesota to just 17 rushing yards.' },
+  { id: 'X', year: 1976, vs: 'Cowboys', score: '21–17', us: 21, them: 17, date: 'January 18, 1976', venue: 'Orange Bowl, Miami',
+    mvp: 'Lynn Swann, WR', coach: 'Chuck Noll', head: 'The winning play',
+    play: 'Clinging to a lead in the fourth quarter, Terry Bradshaw launched a 64-yard touchdown pass to Lynn Swann, taking a big hit as he let it go. Swann finished with 161 yards, including a famous leaping, juggling catch. Glen Edwards intercepted Roger Staubach in the end zone on the final play.' },
+  { id: 'XIII', year: 1979, vs: 'Cowboys', score: '35–31', us: 35, them: 31, date: 'January 21, 1979', venue: 'Orange Bowl, Miami',
+    mvp: 'Terry Bradshaw, QB', coach: 'Chuck Noll', head: 'The winning play',
+    play: 'In a shootout, Franco Harris ran 22 yards for a fourth-quarter touchdown. Dallas fumbled the next kickoff, and Terry Bradshaw hit Lynn Swann for an 18-yard score to make it 35–17. The Cowboys rallied late, but Rocky Bleier recovered their onside kick to seal it. Bradshaw threw for 318 yards and 4 touchdowns.' },
+  { id: 'XIV', year: 1980, vs: 'Rams', score: '31–19', us: 31, them: 19, date: 'January 20, 1980', venue: 'Rose Bowl, Pasadena',
+    mvp: 'Terry Bradshaw, QB', coach: 'Chuck Noll', head: 'The winning play',
+    play: 'Trailing 19–17 in the fourth quarter, Terry Bradshaw threw a 73-yard touchdown bomb to John Stallworth. Jack Lambert then intercepted a pass to stop the Rams, and Franco Harris scored from a yard out to finish it. More than 103,000 fans packed the Rose Bowl, a Super Bowl record.' },
+  { id: 'XL', year: 2006, vs: 'Seahawks', score: '21–10', us: 21, them: 10, date: 'February 5, 2006', venue: 'Ford Field, Detroit',
+    mvp: 'Hines Ward, WR', coach: 'Bill Cowher', head: 'The winning play',
+    play: 'On a trick play, wide receiver Antwaan Randle El took a reverse pitch, rolled right and threw a 43-yard touchdown pass to Hines Ward. Earlier, Willie Parker broke a 75-yard touchdown run, the longest in Super Bowl history at the time. It was Jerome Bettis\'s final game, played in his hometown.' },
+  { id: 'XLIII', year: 2009, vs: 'Cardinals', score: '27–23', us: 27, them: 23, date: 'February 1, 2009', venue: 'Raymond James Stadium, Tampa',
+    mvp: 'Santonio Holmes, WR', coach: 'Mike Tomlin', head: 'The winning play',
+    play: 'Down 23–20 with 35 seconds left, Ben Roethlisberger threw a 6-yard touchdown pass to Santonio Holmes, who made the catch in the corner of the end zone with both toes down. Earlier, James Harrison returned an interception 100 yards for a touchdown on the last play of the first half.' },
 ];
 const P = Object.fromEntries(PLAYERS.map(p => [p.id, p]));
 const RG = Object.fromEntries(RINGS.map(r => [r.id, r]));
 
 /* ---------- World ---------- */
-const W = 360, H = 560, GUT = 470, LAND = 132;
+const W = 360, H = 560, GUT = 450, LAND = 132;
 const VIEW = { x0: -22, y0: -72, w: 404, h: 712 };
 const RAD = { coin: 13, card: 24, ring: 16 };
 const MASS = { coin: 1, card: 1.7, ring: 1.3 };
-const GAP = 46;              // goalpost opening
+const GAP = 30;              // goalpost opening
 const BASE = 92;             // pusher retracted front
 const CARD_W = 44, CARD_H = 60;
 
@@ -242,7 +333,7 @@ const tri = p => 1 - 4 * Math.abs(p - Math.floor(p + 0.5)); // -1..1 triangle (v
 let S, items = [], fallers = [], floats = [], flights = [], queue = [];
 let front = BASE, phase = 0, amp = 70, clock = 0, lastDrop = -9, holding = false;
 let quiet = false, testMode = false;
-const stats = { won: 0, lost: 0 };
+const stats = { won: 0, lost: 0, fg: 0 };
 
 function freshState() {
   return { bank: 40, tickets: 0, cards: {}, rings: {}, drops: 0, blitz: 0, curtain: 0, muted: false, sets: {}, hand: [] };
@@ -404,7 +495,7 @@ function step(dt) {
 
 /* ---------- Game actions ---------- */
 const armX = () => W / 2 + (W / 2 - 18) * tri(clock / 2.7);
-const postX = () => W / 2 + (W / 2 - 40) * tri(clock / 4.3 + 0.3);
+const postX = () => W / 2 + (W / 2 - 34) * Math.sin(clock * 1.25 + 1.8 * Math.sin(clock * 0.43));
 
 function launch(k, x, y1, opts = {}) {
   flights.push({ k, x, y1, t: 0, dur: opts.dur || 0.36, id: opts.id || null, fg: !!opts.fg });
@@ -418,16 +509,16 @@ function land(f) {
   if (f.fg) fieldGoal();
 }
 function playerDrop() {
-  if (wheelBusy) return;
+  if (modalActive) return;
   if (S.bank <= 0) { updateHud(); return; }
   if (clock - lastDrop < 0.26) return;
   lastDrop = clock;
   S.bank--; S.drops++;
   const x = armX();
-  const fg = Math.abs(x - postX()) < GAP / 2 - 5;
+  const fg = Math.abs(x - postX()) < GAP / 2 - 6;
   launch('coin', x, LAND + rand(-4, 4), { fg });
   sfx.drop();
-  if (S.drops % 16 === 0) queue.push({ at: clock + 0.6, fn: () => { launch('card', rand(40, W - 40), LAND, { id: pickCard(), dur: 0.5 }); toast('Card drop!', 'A new player card is on the field'); } });
+  if (S.drops % 25 === 0 && items.filter(i => i.k === 'card').length < 6) queue.push({ at: clock + 0.6, fn: () => { launch('card', rand(40, W - 40), LAND, { id: pickCard(), dur: 0.5 }); toast('Card drop!', 'A new player card is on the field'); } });
   if (S.drops % 30 === 0 && items.filter(i => i.k === 'ring').length < 3) queue.push({ at: clock + 1.0, fn: () => { launch('ring', rand(50, W - 50), LAND, { id: pickRing(), dur: 0.5 }); toast('Ring drop!', 'A Super Bowl ring hit the field'); } });
   updateHud();
 }
@@ -448,14 +539,11 @@ function award(it) {
     sfx.fanfare();
     checkSets();
   } else if (it.k === 'ring') {
-    const g = RG[it.id]; const first = !S.rings[it.id];
+    const first = !S.rings[it.id];
     S.rings[it.id] = (S.rings[it.id] || 0) + 1; S.tickets += 50;
-    toast((first ? 'New ring! ' : '') + 'Super Bowl ' + g.id, g.year + ' vs ' + g.vs + ', ' + g.score + ' · +50 tickets', ringCanvas(it.id, 40));
     floats.push({ x: it.x, y: H + 18, t: 0, txt: '+50', c: '#fff' });
-    sfx.fanfare(true);
     checkSets();
-    S.hand.push(it.id);
-    if (S.hand.length <= 5) flyRing(it.id, it.x); else updateHand();
+    if (!testMode) { S.hand.push(it.id); ringCelebrate(it.id, it.x, first); }
   }
   updateHud();
 }
@@ -503,7 +591,7 @@ const SB_PRIZES = [
   { label: '250 Tix<br>+25 Coins', w: 14, fn: () => { S.tickets += 250; S.bank += 25; return '+250 tickets and 25 coins'; } },
 ];
 const wheelEl = $('#wheel');
-let wheelRot = 0, wheelBusy = false;
+let wheelRot = 0;
 function buildWheel(prizes, sb) {
   wheelEl.innerHTML = '';
   wheelEl.style.background = sb
@@ -518,8 +606,6 @@ function buildWheel(prizes, sb) {
   const hub = document.createElement('div'); hub.className = 'hub'; hub.textContent = sb ? 'SB' : 'PGH'; wheelEl.appendChild(hub);
 }
 function spinWheel(prizes, title, sb, done) {
-  wheelBusy = true;
-  holding = false; $('#hike').classList.remove('down');
   buildWheel(prizes, sb);
   const tot = prizes.reduce((s, p) => s + p.w, 0);
   let roll = Math.random() * tot, idx = 0;
@@ -535,87 +621,217 @@ function spinWheel(prizes, title, sb, done) {
   const spinMs = matchMedia('(prefers-reduced-motion: reduce)').matches ? 700 : 3300;
   setTimeout(() => {
     const msg = prizes[idx].fn();
+    if (sb) { fxBurst(innerWidth / 2, innerHeight * 0.45, 140, false); flash(); }
     $('#wheelMsg').textContent = prizes[idx].label.replace('<br>', ' ') + ': ' + msg;
     sfx.fanfare(true);
     updateHud(); save();
-    setTimeout(() => { $('#wheelOv').hidden = true; wheelBusy = false; if (done) done(); }, sb ? 2200 : 1500);
+    setTimeout(() => { $('#wheelOv').hidden = true; if (done) done(); }, sb ? 2400 : 1500);
   }, spinMs);
 }
 function fieldGoal() {
-  if (wheelBusy || testMode || sbPending) { S.tickets += 10; toast('It\'s good!', '+10 tickets'); return; }
+  stats.fg++;
+  if (testMode) { S.tickets += 10; return; }
   sfx.fanfare();
-  spinWheel(PRIZES, 'It\'s Good!', false);
+  enqueue(done => spinWheel(PRIZES, 'It\'s Good!', false, done));
+}
+
+/* ---------- Popup queue: one at a time, game pauses while open ---------- */
+const modals = []; let modalActive = false;
+function enqueue(fn) { modals.push(fn); pump(); }
+function pump() {
+  if (modalActive || !modals.length) return;
+  modalActive = true; holding = false; $('#hike').classList.remove('down');
+  const fn = modals.shift();
+  fn(() => { modalActive = false; setTimeout(pump, 250); });
 }
 
 /* ---------- Super Bowl hand ---------- */
-// slot positions in CSS px on the 132x66 hand canvas: index, middle, ring, pinky, thumb
-const SLOTS = [[50, 32], [68, 27], [86, 31], [103, 39], [26, 42]];
+// slot order: index, middle, ring, pinky, thumb
+const FINGERS = [
+  { x: 53, y: 57, w: 15, h: 42, r: -10 },
+  { x: 70, y: 54, w: 15.5, h: 48, r: -2 },
+  { x: 87, y: 55, w: 15, h: 44, r: 6 },
+  { x: 102, y: 60, w: 12.5, h: 34, r: 15 },
+  { x: 47, y: 76, w: 16, h: 34, r: -56 },
+];
 let handShown = 0, sbPending = false;
-const handCv = $('#handCv');
-function drawHand() {
-  const d = Math.min(window.devicePixelRatio || 1, 2);
-  if (handCv.width !== 132 * d) { handCv.width = 132 * d; handCv.height = 66 * d; }
-  const g = handCv.getContext('2d');
-  g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, 132, 66);
-  const fingers = [[50, 10], [68, 5], [86, 9], [103, 20]];
-  const shape = (lw, col) => {
-    g.strokeStyle = col; g.fillStyle = col; g.lineCap = 'round'; g.lineWidth = lw;
-    for (const [x, top] of fingers) { g.beginPath(); g.moveTo(x, 58); g.lineTo(x, top + 7); g.stroke(); }
-    g.beginPath(); g.moveTo(44, 60); g.lineTo(18, 34); g.stroke();
-    const e = (lw - 15) / 2;
-    g.beginPath(); g.roundRect ? g.roundRect(40 - e, 42 - e, 70 + e * 2, 40, 12) : g.rect(40 - e, 42 - e, 70 + e * 2, 40); g.fill();
-  };
-  shape(19, '#ffb612');
-  shape(15, '#2f353f');
-  g.strokeStyle = 'rgba(255,255,255,.06)'; g.lineWidth = 1;
-  for (const [x, top] of fingers) { g.beginPath(); g.moveTo(x - 3, 46); g.lineTo(x - 3, top + 6); g.stroke(); }
-  const shown = S.hand.slice(0, Math.min(5, handShown));
-  SLOTS.forEach(([x, y], i) => {
-    const id = shown[i];
-    if (id && sprites['ring:' + id]) g.drawImage(sprites['ring:' + id], x - 12, y - 12, 24, 24);
-    else { g.setLineDash([2, 2]); g.strokeStyle = 'rgba(255,182,18,.6)'; g.lineWidth = 1.5; g.beginPath(); g.ellipse(x, y, 9, 4, 0, 0, 7); g.stroke(); g.setLineDash([]); }
+function handSVG(rings, popIdx, pre) {
+  const tf = f => `transform="rotate(${f.r} ${f.x} ${f.y})"`;
+  const shapes = FINGERS.map(f => `<rect x="${f.x - f.w / 2}" y="${f.y - f.h}" width="${f.w}" height="${f.h + 12}" rx="${f.w / 2}" ${tf(f)}/>`).join('')
+    + '<path d="M42 64 Q42 51 55 50 L101 51 Q112 53 111 66 L108 84 Q107 90 99 90 L53 90 Q45 90 44 84 Z"/>';
+  let det = '';
+  FINGERS.forEach((f, i) => {
+    const n = i === 4 ? 1 : 2;
+    for (let k = 1; k <= n; k++) {
+      const y = f.y - f.h * (i === 4 ? 0.7 : k * 0.3 + 0.05);
+      det += `<path d="M${f.x - f.w * 0.3} ${y} Q${f.x} ${y + 1.4} ${f.x + f.w * 0.3} ${y}" ${tf(f)}/>`;
+    }
   });
+  const laces = '<path d="M64 71 L88 71 M68 68.5 L68 73.5 M72 68.5 L72 73.5 M76 68.5 L76 73.5 M80 68.5 L80 73.5 M84 68.5 L84 73.5" stroke="#ffb612" stroke-opacity=".55" stroke-width="1.1" stroke-linecap="round"/>';
+  const tips = FINGERS.slice(0, 4).map(f => `<ellipse cx="${f.x - f.w * 0.15}" cy="${f.y - f.h + 6}" rx="${f.w * 0.22}" ry="3.2" fill="#fff" fill-opacity=".09" ${tf(f)}/>`).join('');
+  const slots = FINGERS.map((f, i) => {
+    const sy = f.y - f.h * (i === 4 ? 0.45 : 0.42), bw = f.w + 3, id = rings[i];
+    let inner;
+    if (id) {
+      let dots = '';
+      for (let k = 0; k < 10; k++) { const t = k / 10 * 6.283; dots += `<circle cx="${(f.x + Math.cos(t) * 6.35).toFixed(2)}" cy="${(sy + Math.sin(t) * 4.75).toFixed(2)}" r=".5" fill="#f2fbff"/>`; }
+      const fit = id.length > 3 ? 'textLength="7.6" lengthAdjust="spacingAndGlyphs"' : '';
+      inner = `<g class="${i === popIdx ? 'ringpop' : ''}">
+        <rect x="${f.x - bw / 2}" y="${sy - 3.2}" width="${bw}" height="6.4" rx="2.4" fill="url(#${pre}g)" stroke="#5c3d00" stroke-width=".5"/>
+        <ellipse cx="${f.x}" cy="${sy}" rx="7.6" ry="5.8" fill="url(#${pre}g)" stroke="#5c3d00" stroke-width=".5"/>${dots}
+        <ellipse cx="${f.x}" cy="${sy}" rx="5.1" ry="3.8" fill="#0d0e10"/>
+        <text x="${f.x}" y="${sy + 1.3}" text-anchor="middle" font-family="Graduate, serif" font-size="3.7" fill="#ffb612" ${fit}>${id}</text></g>`;
+    } else {
+      inner = `<rect x="${f.x - bw / 2}" y="${sy - 3}" width="${bw}" height="6" rx="2.4" fill="#ffb612" fill-opacity=".08" stroke="#ffb612" stroke-opacity=".55" stroke-width=".7" stroke-dasharray="1.6 1.2"/>`;
+    }
+    return `<g data-slot="${i}" ${tf(f)}>${inner}</g>`;
+  }).join('');
+  return `<defs>
+    <linearGradient id="${pre}g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset=".45" stop-color="#f6be2c"/><stop offset="1" stop-color="#9a6a00"/></linearGradient>
+    <linearGradient id="${pre}v" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#434a56"/><stop offset="1" stop-color="#191b20"/></linearGradient>
+  </defs>
+  <g fill="none" stroke="#ffb612" stroke-width="3.2" stroke-linejoin="round">${shapes}</g>
+  <g fill="url(#${pre}v)">${shapes}</g>
+  <g fill="none" stroke="#000" stroke-opacity=".45" stroke-width=".9" stroke-linecap="round">${det}</g>
+  ${tips}${laces}
+  <rect x="45" y="86" width="62" height="8" rx="2" fill="url(#${pre}g)"/>
+  <path d="M53 86 v8 M63 86 v8 M73 86 v8 M83 86 v8 M93 86 v8 M103 86 v8" stroke="#111" stroke-width="3"/>
+  ${slots}`;
 }
-function updateHand() {
+function updateHand(popIdx) {
   const n = Math.min(5, handShown);
   $('#handCount').textContent = n >= 5 ? 'Super Bowl Spin!' : n + ' of 5 rings';
   $('#handRow').classList.toggle('full', n >= 5);
-  drawHand();
+  $('#handSvg').innerHTML = handSVG(S.hand.slice(0, n), popIdx, 'h');
 }
-function flyRing(id, wx) {
-  const slot = SLOTS[Math.min(4, S.hand.length - 1)];
-  const cr = cvs.getBoundingClientRect(), hr = handCv.getBoundingClientRect();
-  const sx = cr.left + (wx - VIEW.x0) * sc, sy = cr.top + (H + 14 - VIEW.y0) * sc;
-  const tx = hr.left + slot[0], ty = hr.top + slot[1];
-  const el = ringCanvas(id, 32); el.className = 'flyring';
+function ringCelebrate(id, wx, first) {
+  const cr = cvs.getBoundingClientRect();
+  const sx = cr.left + (wx - VIEW.x0) * sc, sy = cr.top + (H - VIEW.y0) * sc;
+  flash(); fxBurst(sx, sy, 110, true); sfx.charge(); haptic([40, 40, 80]);
+  enqueue(done => setTimeout(() => showStory(id, first, done), 650));
+}
+function showStory(id, first, done) {
+  const g = RG[id];
+  $('#stKicker').textContent = first ? 'New ring!' : 'Another ' + id + ' ring!';
+  $('#stTitle').textContent = 'Super Bowl ' + id;
+  $('#stMeta').textContent = g.date + ' · ' + g.venue;
+  $('#stUs').textContent = g.us; $('#stThem').textContent = g.them; $('#stOppName').textContent = g.vs;
+  $('#stPlayHead').textContent = g.head; $('#stPlay').textContent = g.play;
+  $('#stMvp').textContent = g.mvp; $('#stCoach').textContent = g.coach;
+  const full = handShown >= 5;
+  $('#stBtn').firstChild.textContent = full ? 'Save it for the next hand' : 'Slide it on the hand';
+  const box = $('#stRing'); box.innerHTML = ''; const rc = ringCanvas(id, 104); box.appendChild(rc);
+  $('#storyOv').hidden = false;
+  $('#storyOv').scrollTop = 0; $('.story').scrollTop = 0;
+  setTimeout(() => fxBurst(innerWidth / 2, innerHeight * 0.3, 70, false), 200);
+  const btn = $('#stBtn');
+  btn.onclick = () => {
+    btn.onclick = null;
+    const from = rc.getBoundingClientRect();
+    $('#storyOv').hidden = true;
+    if (full) { toast('Saved', 'The ' + id + ' ring starts your next hand'); done(); return; }
+    flyRing(id, from, done);
+  };
+}
+function flyRing(id, from, cb) {
+  const idx = Math.min(4, handShown);
+  const slot = $('#handSvg').querySelector('[data-slot="' + idx + '"]');
+  const tr = slot.getBoundingClientRect();
+  const sx = from.left + from.width / 2, sy = from.top + from.height / 2, s0 = from.width / 40;
+  const tx = tr.left + tr.width / 2, ty = tr.top + tr.height / 2;
+  const el = ringCanvas(id, 40); el.className = 'flyring';
   document.body.appendChild(el);
-  const T = (x, y, k) => 'translate(' + (x - 16) + 'px,' + (y - 16) + 'px) scale(' + k + ')';
-  const done = () => { el.remove(); handShown++; sfx.clink(); haptic(15); updateHand(); if (handShown >= 5) triggerSB(); };
+  const T = (x, y, k, r) => 'translate(' + (x - 20) + 'px,' + (y - 20) + 'px) scale(' + k + ') rotate(' + r + 'deg)';
+  const finish = () => {
+    el.remove(); handShown++;
+    updateHand(handShown - 1);
+    fxBurst(tx, ty, 40, true); sfx.clink(); sfx.thunk('ring'); haptic(25);
+    if (handShown >= 5) triggerSB();
+    cb();
+  };
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!el.animate) { done(); return; }
+  if (!el.animate) { finish(); return; }
   el.animate([
-    { transform: T(sx, sy, 1) },
-    { transform: T((sx + tx) / 2, Math.min(sy, ty) - 50, 1.9), offset: 0.45 },
-    { transform: T(tx, ty, 0.7) },
-  ], { duration: reduce ? 250 : 1000, easing: 'ease-in-out', fill: 'forwards' }).onfinish = done;
+    { transform: T(sx, sy, s0, 0) },
+    { transform: T((sx + tx) / 2, (sy + ty) / 2 - 40, s0 * 1.15, 200), offset: 0.5 },
+    { transform: T(tx, ty, 0.55, 360) },
+  ], { duration: reduce ? 250 : 900, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' }).onfinish = finish;
 }
 function triggerSB() {
   if (sbPending) return;
   sbPending = true;
   updateHand();
-  setTimeout(() => toast('Hand full!', 'Five rings. Time for the Super Bowl Spin!'), 200);
-  const go = () => {
-    if (wheelBusy) { setTimeout(go, 400); return; }
-    spinWheel(SB_PRIZES, 'Super Bowl Spin', true, () => {
-      S.hand = S.hand.slice(5);
-      handShown = Math.min(5, S.hand.length);
-      sbPending = false;
-      updateHand(); save();
-      if (handShown >= 5) triggerSB();
-    });
-  };
-  setTimeout(go, 1200);
+  enqueue(done => bigCelebrate(() => spinWheel(SB_PRIZES, 'Super Bowl Spin', true, () => {
+    S.hand = S.hand.slice(5);
+    handShown = Math.min(5, S.hand.length);
+    sbPending = false;
+    updateHand(); save();
+    done();
+    if (handShown >= 5) triggerSB();
+  })));
 }
+let fwTimer = null;
+function bigCelebrate(next) {
+  $('#bigHand').innerHTML = handSVG(S.hand.slice(0, 5), -1, 'b');
+  $('#celebOv').hidden = false;
+  flash(); sfx.charge(); setTimeout(() => sfx.charge(), 900); haptic([60, 50, 60, 50, 150]);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  fxBurst(innerWidth * 0.2, innerHeight, 90, true); fxBurst(innerWidth * 0.8, innerHeight, 90, true);
+  if (!reduce) {
+    let n = 0;
+    fwTimer = setInterval(() => {
+      fxFirework(rand(0.15, 0.85) * innerWidth, rand(0.1, 0.45) * innerHeight);
+      if (++n % 3 === 0) fxBurst(rand(0.1, 0.9) * innerWidth, innerHeight, 50, true);
+      if (n % 4 === 0) sfx.boom();
+    }, 330);
+  }
+  $('#celebBtn').onclick = () => {
+    $('#celebBtn').onclick = null;
+    clearInterval(fwTimer); fwTimer = null;
+    $('#celebOv').hidden = true;
+    next();
+  };
+}
+
+/* ---------- Effects layer ---------- */
+const fxc = $('#fx'), fxg = fxc.getContext('2d');
+let parts = [], fxRun = false;
+const FXC = ['#ffb612', '#ffd34d', '#f5efe1', '#101114', '#c78a00', '#ffffff'];
+function fxSize() { const d = Math.min(window.devicePixelRatio || 1, 2); fxc.width = innerWidth * d; fxc.height = innerHeight * d; fxg.setTransform(d, 0, 0, d, 0, 0); }
+function fxBurst(x, y, n, up) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) n = Math.ceil(n * 0.3);
+  for (let i = 0; i < n; i++) {
+    const a = up ? -Math.PI / 2 + rand(-0.9, 0.9) : rand(0, 6.283), sp = rand(220, 620);
+    parts.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: 700, drag: 1.6, life: rand(1.6, 2.6), t: 0, c: FXC[i % FXC.length], w: rand(5, 10), h: rand(3, 6), rot: rand(0, 6), vr: rand(-12, 12), k: 0 });
+  }
+  runFx();
+}
+function fxFirework(x, y) {
+  const c = ['#ffb612', '#ffffff', '#ffd34d', '#ffe9a6'][Math.floor(Math.random() * 4)];
+  for (let i = 0; i < 70; i++) { const a = i / 70 * 6.283, sp = rand(140, 260); parts.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: 110, drag: 1.2, life: rand(1, 1.5), t: 0, c, k: 1 }); }
+  runFx();
+}
+function runFx() {
+  if (fxRun) return; fxRun = true; fxSize();
+  let lastT = performance.now();
+  const tick = now => {
+    const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+    fxg.clearRect(0, 0, innerWidth, innerHeight);
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const q = parts[i]; q.t += dt;
+      if (q.t > q.life || q.y > innerHeight + 40) { parts.splice(i, 1); continue; }
+      const dr = Math.exp(-q.drag * dt); q.vx *= dr; q.vy *= dr; q.vy += q.g * dt; q.x += q.vx * dt; q.y += q.vy * dt;
+      const a = Math.min(1, (q.life - q.t) * 2.5);
+      fxg.globalAlpha = a; fxg.fillStyle = q.c;
+      if (q.k === 0) { q.rot += q.vr * dt; fxg.save(); fxg.translate(q.x, q.y); fxg.rotate(q.rot); fxg.scale(Math.cos(q.rot * 1.7), 1); fxg.fillRect(-q.w / 2, -q.h / 2, q.w, q.h); fxg.restore(); }
+      else { fxg.beginPath(); fxg.arc(q.x, q.y, 2.2, 0, 7); fxg.fill(); fxg.globalAlpha = a * 0.25; fxg.beginPath(); fxg.arc(q.x, q.y, 5, 0, 7); fxg.fill(); }
+    }
+    fxg.globalAlpha = 1;
+    if (parts.length) requestAnimationFrame(tick); else { fxRun = false; fxg.clearRect(0, 0, innerWidth, innerHeight); }
+  };
+  requestAnimationFrame(tick);
+}
+function flash() { const f = $('#flash'); if (f.animate) f.animate([{ opacity: 0.85 }, { opacity: 0 }], { duration: 700, easing: 'ease-out' }); }
 
 /* ---------- Rendering ---------- */
 const cvs = $('#field'), ctx = cvs.getContext('2d');
@@ -712,7 +928,6 @@ function drawRing(g, id, r) {
 }
 function buildSprites() {
   sprites = {};
-  queueMicrotask(() => { if (S) drawHand(); });
   { const r = RAD.coin; const [c, g] = off(r * 2, r * 2); drawCoin(g, r); sprites.coin = c; }
   for (const p of PLAYERS) { const [c, g] = off(CARD_W, CARD_H); drawCard(g, p.id, CARD_W, CARD_H); sprites['card:' + p.id] = c; }
   for (const rg of RINGS) { const r = RAD.ring; const [c, g] = off(r * 2, r * 2); drawRing(g, rg.id, r); sprites['ring:' + rg.id] = c; }
@@ -845,8 +1060,7 @@ function render() {
   ctx.lineCap = 'butt';
   // arm + aim line
   const ax = armX();
-  const aligned = Math.abs(ax - px) < GAP / 2 - 5;
-  ctx.setLineDash([3, 5]); ctx.strokeStyle = aligned ? 'rgba(255,211,77,.9)' : 'rgba(255,255,255,.35)'; ctx.lineWidth = 1.5;
+  ctx.setLineDash([3, 5]); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(ax, -36); ctx.lineTo(ax, LAND); ctx.stroke(); ctx.setLineDash([]);
   ctx.beginPath(); ctx.arc(ax, LAND, 5, 0, 7); ctx.stroke();
   ctx.fillStyle = '#3a414c'; ctx.fillRect(ax - 16, -56, 32, 12);
@@ -947,6 +1161,8 @@ const sfx = {
   thunk(k) { tone(k === 'coin' ? 180 : 120, 0.09, 'sine', 0.08, 0, 70); },
   clink() { const n = performance.now(); if (n - lastClink < 45) return; lastClink = n; const f = rand(1900, 2600); tone(f, 0.12, 'sine', 0.05); tone(f * 1.5, 0.08, 'sine', 0.025, 0.01); },
   out() { tone(140, 0.18, 'sawtooth', 0.025, 0, 90); },
+  charge() { [[392, 0], [523, .13], [659, .26], [784, .39], [659, .62], [784, .75]].forEach(([f, w], i) => { const d = i === 5 ? 0.6 : 0.14; tone(f, d, 'square', 0.04, w); tone(f / 2, d, 'triangle', 0.05, w); }); },
+  boom() { tone(90, 0.5, 'sawtooth', 0.04, 0, 35); tone(1200, 0.25, 'sine', 0.015, 0.05, 400); },
   fanfare(big) { const ns = big ? [523, 659, 784, 1047, 784, 1047] : [523, 659, 784, 1047]; ns.forEach((f, i) => tone(f, 0.16, 'square', 0.035, i * 0.09)); },
 };
 function haptic(ms) { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) { /* not available */ } }
@@ -987,9 +1203,10 @@ function frame(ts) {
   if (dt > 0.25) dt = 0.25;
   acc += dt;
   let n = 0;
-  while (acc >= 1 / 60 && n < 5) { step(1 / 60); acc -= 1 / 60; n++; }
+  while (!modalActive && acc >= 1 / 60 && n < 5) { step(1 / 60); acc -= 1 / 60; n++; }
+  if (modalActive) acc = 0;
   if (n === 5) acc = 0;
-  if (holding && clock - lastDrop > 0.3) playerDrop();
+  if (holding && !modalActive && clock - lastDrop > 0.3) playerDrop();
   render();
   statusHud();
   saveT += dt; if (saveT > 4) { saveT = 0; save(); }
@@ -1008,12 +1225,13 @@ function boot(data) {
   handShown = Math.min(5, S.hand.length);
   updateHand();
   if (handShown >= 5) setTimeout(triggerSB, 800);
+  window.addEventListener('resize', () => { if (fxRun) fxSize(); });
   window.addEventListener('resize', resize);
   document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
   window.addEventListener('pagehide', save);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { buildSprites(); buildTable(); });
   try { window.claude?.hot?.snapshot?.(() => serialize()); } catch (e) { /* no hot reload */ }
-  window.__pusher = { step: dt => step(dt), drop: () => { testMode = true; lastDrop = -9; playerDrop(); }, get S() { return S; }, get items() { return items; }, stats, flyRing: id => { S.hand.push(id); flyRing(id, 180); } };
+  window.__pusher = { step: dt => step(dt), drop: () => { testMode = true; lastDrop = -9; playerDrop(); }, get S() { return S; }, get items() { return items; }, stats, ring: id => { S.hand.push(id); ringCelebrate(id, 180, true); }, click: () => { const b = document.querySelector('#stBtn'); b.onclick && b.onclick(); } };
   requestAnimationFrame(frame);
 }
 window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});

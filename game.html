@@ -1145,25 +1145,63 @@ function renderLocker() {
 }
 
 /* ---------- Sound ---------- */
-let AC = null, lastClink = 0;
-function ac() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } } if (AC && AC.state === 'suspended') AC.resume(); return AC; }
+let AC = null, master = null, lastClink = 0, unlocked = false, silentEl = null;
+// iOS mutes Web Audio when the ring/silent switch is on. Asking for a "playback" audio session
+// (Safari 17+) or playing a silent looping <audio> element (older iOS) lets the game be heard.
+function silentWav() {
+  const n = 800, b = new Uint8Array(44 + n), v = new DataView(b.buffer);
+  const w = (o, t) => { for (let i = 0; i < t.length; i++) b[o + i] = t.charCodeAt(i); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + n, true); w(8, 'WAVEfmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); w(36, 'data'); v.setUint32(40, n, true);
+  b.fill(128, 44);
+  let bin = ''; for (let i = 0; i < b.length; i++) bin += String.fromCharCode(b[i]);
+  return 'data:audio/wav;base64,' + btoa(bin);
+}
+function ac() {
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { /* not supported */ }
+  if (!AC) {
+    try {
+      AC = new (window.AudioContext || window.webkitAudioContext)();
+      const comp = AC.createDynamicsCompressor();
+      comp.threshold.value = -14; comp.knee.value = 10; comp.ratio.value = 6;
+      master = AC.createGain(); master.gain.value = 1;
+      master.connect(comp); comp.connect(AC.destination);
+    } catch (e) { AC = null; }
+  }
+  if (!AC) return null;
+  if (AC.state !== 'running') { try { AC.resume(); } catch (e) { /* ignore */ } }
+  if (!unlocked) {
+    unlocked = true;
+    try { // a one-sample buffer played inside the tap unlocks audio on older iOS
+      const buf = AC.createBuffer(1, 1, 22050), src = AC.createBufferSource();
+      src.buffer = buf; src.connect(AC.destination); src.start(0);
+    } catch (e) { /* ignore */ }
+    if (!navigator.audioSession) {
+      try { silentEl = new Audio(silentWav()); silentEl.loop = true; silentEl.setAttribute('playsinline', ''); const pr = silentEl.play(); if (pr && pr.catch) pr.catch(() => {}); } catch (e) { /* ignore */ }
+    }
+  }
+  return AC;
+}
+for (const ev of ['touchend', 'click', 'pointerup', 'keydown']) document.addEventListener(ev, () => { if (!S.muted) ac(); }, { capture: true, passive: true });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && AC && !S.muted) ac(); });
 function tone(freq, dur, type, vol, when, slide) {
-  if (S.muted || !AC) return;
-  const t0 = AC.currentTime + (when || 0);
+  if (S.muted || !AC || !master) return;
+  const t0 = AC.currentTime + 0.01 + (when || 0);
   const o = AC.createOscillator(), g = AC.createGain();
   o.type = type || 'sine'; o.frequency.setValueAtTime(freq, t0);
   if (slide) o.frequency.exponentialRampToValueAtTime(slide, t0 + dur);
-  g.gain.setValueAtTime(vol || 0.1, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-  o.connect(g).connect(AC.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+  g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol || 0.3, t0 + 0.005);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g); g.connect(master); o.start(t0); o.stop(t0 + dur + 0.03);
 }
 const sfx = {
-  drop() { tone(520, 0.08, 'triangle', 0.05, 0, 300); },
-  thunk(k) { tone(k === 'coin' ? 180 : 120, 0.09, 'sine', 0.08, 0, 70); },
-  clink() { const n = performance.now(); if (n - lastClink < 45) return; lastClink = n; const f = rand(1900, 2600); tone(f, 0.12, 'sine', 0.05); tone(f * 1.5, 0.08, 'sine', 0.025, 0.01); },
-  out() { tone(140, 0.18, 'sawtooth', 0.025, 0, 90); },
-  charge() { [[392, 0], [523, .13], [659, .26], [784, .39], [659, .62], [784, .75]].forEach(([f, w], i) => { const d = i === 5 ? 0.6 : 0.14; tone(f, d, 'square', 0.04, w); tone(f / 2, d, 'triangle', 0.05, w); }); },
-  boom() { tone(90, 0.5, 'sawtooth', 0.04, 0, 35); tone(1200, 0.25, 'sine', 0.015, 0.05, 400); },
-  fanfare(big) { const ns = big ? [523, 659, 784, 1047, 784, 1047] : [523, 659, 784, 1047]; ns.forEach((f, i) => tone(f, 0.16, 'square', 0.035, i * 0.09)); },
+  drop() { tone(700, 0.09, 'triangle', 0.35, 0, 380); },
+  thunk(k) { tone(k === 'coin' ? 420 : 300, 0.08, 'triangle', 0.4, 0, 180); tone(1500, 0.03, 'square', 0.08); },
+  clink() { const n = performance.now(); if (n - lastClink < 45) return; lastClink = n; const f = rand(1900, 2600); tone(f, 0.14, 'sine', 0.35); tone(f * 1.5, 0.09, 'sine', 0.18, 0.01); },
+  out() { tone(260, 0.2, 'sawtooth', 0.18, 0, 130); },
+  charge() { [[392, 0], [523, .13], [659, .26], [784, .39], [659, .62], [784, .75]].forEach(([f, w], i) => { const d = i === 5 ? 0.6 : 0.14; tone(f, d, 'square', 0.22, w); tone(f * 2, d, 'triangle', 0.15, w); }); },
+  boom() { tone(220, 0.45, 'sawtooth', 0.25, 0, 60); tone(1400, 0.25, 'sine', 0.1, 0.05, 400); },
+  fanfare(big) { const ns = big ? [523, 659, 784, 1047, 784, 1047] : [523, 659, 784, 1047]; ns.forEach((f, i) => tone(f, 0.16, 'square', 0.2, i * 0.09)); },
 };
 function haptic(ms) { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) { /* not available */ } }
 
@@ -1183,7 +1221,7 @@ hike.addEventListener('keydown', e => { if ((e.key === ' ' || e.key === 'Enter')
 hike.addEventListener('keyup', e => { if (e.key === ' ' || e.key === 'Enter') release(); });
 document.addEventListener('keydown', e => { if (e.key === ' ' && e.target === document.body && !e.repeat) { e.preventDefault(); press(); } });
 document.addEventListener('keyup', e => { if (e.key === ' ' && e.target === document.body) release(); });
-$('#muteBtn').addEventListener('click', () => { S.muted = !S.muted; $('#muteLbl').textContent = S.muted ? 'Off' : 'On'; ac(); save(); });
+$('#muteBtn').addEventListener('click', () => { S.muted = !S.muted; $('#muteLbl').textContent = S.muted ? 'Off' : 'On'; if (!S.muted) { ac(); sfx.clink(); } else if (silentEl) { try { silentEl.pause(); } catch (e) { /* ignore */ } unlocked = false; } save(); });
 $('#lockerBtn').addEventListener('click', () => { renderLocker(); $('#lockerOv').hidden = false; });
 $('#lockerClose').addEventListener('click', () => { $('#lockerOv').hidden = true; resetArm(); });
 $('#lockerOv').addEventListener('click', e => { if (e.target.id === 'lockerOv') { $('#lockerOv').hidden = true; resetArm(); } });
@@ -1231,7 +1269,7 @@ function boot(data) {
   window.addEventListener('pagehide', save);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { buildSprites(); buildTable(); });
   try { window.claude?.hot?.snapshot?.(() => serialize()); } catch (e) { /* no hot reload */ }
-  window.__pusher = { step: dt => step(dt), drop: () => { testMode = true; lastDrop = -9; playerDrop(); }, get S() { return S; }, get items() { return items; }, stats, ring: id => { S.hand.push(id); ringCelebrate(id, 180, true); }, click: () => { const b = document.querySelector('#stBtn'); b.onclick && b.onclick(); } };
+  window.__pusher = { step: dt => step(dt), drop: () => { testMode = true; lastDrop = -9; playerDrop(); }, get S() { return S; }, get items() { return items; }, get audio() { return AC ? AC.state : "none"; }, stats, ring: id => { S.hand.push(id); ringCelebrate(id, 180, true); }, click: () => { const b = document.querySelector('#stBtn'); b.onclick && b.onclick(); } };
   requestAnimationFrame(frame);
 }
 window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});

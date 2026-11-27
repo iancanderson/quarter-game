@@ -73,7 +73,19 @@ canvas#field { display: block; border-radius: 10px; touch-action: none; cursor: 
 @keyframes fade { to { opacity: 0; transform: translateY(-14px) } }
 /* Controls */
 .controls { display: flex; flex-direction: column; gap: 6px; }
-.status { display: flex; gap: 6px; flex-wrap: wrap; min-height: 22px; justify-content: center; }
+.status { display: flex; gap: 6px; flex-wrap: wrap; min-height: 22px; align-items: center; }
+.handrow { display: flex; gap: 12px; align-items: center; background: var(--steel-2); border: 1px solid var(--line); border-radius: 8px; padding: 4px 12px 4px 6px; }
+.handrow.full { border-color: var(--gold); animation: glow .55s ease-in-out infinite alternate; }
+@keyframes glow { from { box-shadow: 0 0 0 1px var(--gold), 0 0 8px rgba(255,182,18,.3); } to { box-shadow: 0 0 0 2px var(--gold), 0 0 26px rgba(255,182,18,.75); } }
+.hand { flex: none; width: 132px; height: 66px; }
+.hand canvas { display: block; width: 132px; height: 66px; }
+.handinfo { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.handinfo .lbl { font-size: 11px; letter-spacing: .14em; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+.handcount { font-family: var(--display); color: var(--gold); font-size: 18px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.flyring { position: fixed; left: 0; top: 0; z-index: 15; pointer-events: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,.6)); }
+.overlay.sb h2 { color: var(--ink); text-shadow: 0 0 18px var(--gold), 0 3px 0 #000; font-size: 32px; }
+.overlay.sb .wheel { border-color: var(--ink); box-shadow: 0 0 0 4px var(--gold), 0 0 50px rgba(255,182,18,.8); }
+.overlay.sb .wheel .hub { color: var(--ink); border-color: var(--ink); }
 .pill {
   font: 700 12px/1 var(--body); letter-spacing: .12em; text-transform: uppercase;
   padding: 5px 9px; border-radius: 99px; background: var(--steel-3); color: var(--ink); border: 0;
@@ -149,14 +161,21 @@ canvas#field { display: block; border-radius: 10px; touch-action: none; cursor: 
     <div class="toasts" id="toasts"></div>
   </div>
   <div class="controls">
-    <div class="status" id="status"><span class="pill hint">Drop through the goalposts to spin the bonus wheel</span></div>
+    <div class="handrow" id="handRow">
+      <div class="hand"><canvas id="handCv" aria-label="Super Bowl hand: rings you win go on its fingers"></canvas></div>
+      <div class="handinfo">
+        <span class="lbl">Super Bowl Hand</span>
+        <span class="handcount" id="handCount">0 of 5 rings</span>
+        <div class="status" id="status"></div>
+      </div>
+    </div>
     <button class="hike" id="hike" type="button">HIKE!<small>Tap or hold to drop coins</small></button>
   </div>
 </div>
 
 <div class="overlay" id="wheelOv" hidden>
   <div class="wheelwrap">
-    <h2>It's Good!</h2>
+    <h2 id="wheelTitle">It's Good!</h2>
     <div class="wheelbox">
       <div class="pointer"></div>
       <div class="wheel" id="wheel"></div>
@@ -172,7 +191,7 @@ canvas#field { display: block; border-radius: 10px; touch-action: none; cursor: 
     <div class="rings" id="ringGrid"></div>
     <h3>Roster Cards <em id="cardCount">0/12</em></h3>
     <div class="cards" id="cardGrid"></div>
-    <p class="howto"><b>How to play:</b> The quarterback's arm slides across the top. Tap to drop a coin and the pusher shoves the pile toward the end zone. Everything that falls over the goal line is yours: coins go back in your bank and earn tickets. Coins that slide off the sides are out of bounds. Drop a coin between the goalposts to spin the bonus wheel. Push cards and rings into the end zone to add them to your locker. Collect all six rings or the full roster for a big ticket bonus.</p>
+    <p class="howto"><b>How to play:</b> The quarterback's arm slides across the top. Tap to drop a coin and the pusher shoves the pile toward the end zone. Everything that falls over the goal line is yours: coins go back in your bank and earn tickets. Coins that slide off the sides are out of bounds. Drop a coin between the goalposts to spin the bonus wheel. Push cards and rings into the end zone to add them to your locker. Every ring you win goes onto the Super Bowl Hand. Fill all five fingers to unlock the <b>Super Bowl Spin</b>, with prizes like 500 tickets, a coin avalanche and a 1,000-ticket jackpot. Collecting all six different rings or the full roster also pays a big ticket bonus.</p>
     <button class="danger" id="resetBtn" type="button">Reset progress</button>
   </div>
 </div>
@@ -226,7 +245,7 @@ let quiet = false, testMode = false;
 const stats = { won: 0, lost: 0 };
 
 function freshState() {
-  return { bank: 40, tickets: 0, cards: {}, rings: {}, drops: 0, blitz: 0, curtain: 0, muted: false, sets: {} };
+  return { bank: 40, tickets: 0, cards: {}, rings: {}, drops: 0, blitz: 0, curtain: 0, muted: false, sets: {}, hand: [] };
 }
 function mk(k, x, y, L, id) {
   return { k, x, y, L, r: RAD[k], m: MASS[k], a: k === 'card' ? rand(-0.45, 0.45) : rand(0, 6.283), id: id || null };
@@ -409,7 +428,7 @@ function playerDrop() {
   launch('coin', x, LAND + rand(-4, 4), { fg });
   sfx.drop();
   if (S.drops % 16 === 0) queue.push({ at: clock + 0.6, fn: () => { launch('card', rand(40, W - 40), LAND, { id: pickCard(), dur: 0.5 }); toast('Card drop!', 'A new player card is on the field'); } });
-  if (S.drops % 55 === 0 && items.filter(i => i.k === 'ring').length < 3) queue.push({ at: clock + 1.0, fn: () => { launch('ring', rand(50, W - 50), LAND, { id: pickRing(), dur: 0.5 }); toast('Ring drop!', 'A Super Bowl ring hit the field'); } });
+  if (S.drops % 30 === 0 && items.filter(i => i.k === 'ring').length < 3) queue.push({ at: clock + 1.0, fn: () => { launch('ring', rand(50, W - 50), LAND, { id: pickRing(), dur: 0.5 }); toast('Ring drop!', 'A Super Bowl ring hit the field'); } });
   updateHud();
 }
 function award(it) {
@@ -435,6 +454,8 @@ function award(it) {
     floats.push({ x: it.x, y: H + 18, t: 0, txt: '+50', c: '#fff' });
     sfx.fanfare(true);
     checkSets();
+    S.hand.push(it.id);
+    if (S.hand.length <= 5) flyRing(it.id, it.x); else updateHand();
   }
   updateHud();
 }
@@ -464,41 +485,136 @@ const PRIZES = [
   { label: 'Coin<br>Shower', w: 26, fn: () => { for (let i = 0; i < 14; i++) queue.push({ at: clock + 0.12 * i, fn: () => launch('coin', rand(20, W - 20), rand(LAND, 320), { dur: 0.45 }) }); return '14 coins rain onto the field'; } },
   { label: 'Player<br>Card', w: 22, fn: () => { const id = pickCard(); launch('card', rand(60, W - 60), rand(LAND, 260), { id, dur: 0.55 }); return P[id].name + ' card dropped in'; } },
   { label: 'Blitz', w: 18, fn: () => { S.blitz += 15; return 'Pusher goes long for 15 seconds'; } },
-  { label: 'Super Bowl<br>Ring', w: 9, fn: () => { const id = pickRing(); launch('ring', rand(60, W - 60), rand(LAND, 280), { id, dur: 0.55 }); return 'Super Bowl ' + id + ' ring dropped in'; } },
+  { label: 'Super Bowl<br>Ring', w: 12, fn: () => { const id = pickRing(); launch('ring', rand(60, W - 60), rand(LAND, 280), { id, dur: 0.55 }); return 'Super Bowl ' + id + ' ring dropped in'; } },
   { label: 'Steel<br>Curtain', w: 14, fn: () => { S.curtain += 20; return 'Side walls up for 20 seconds'; } },
   { label: '+50<br>Tickets', w: 11, fn: () => { S.tickets += 50; return '+50 tickets'; } },
 ];
+const SB_PRIZES = [
+  { label: '500<br>Tickets', w: 26, fn: () => { S.tickets += 500; return '+500 tickets'; } },
+  { label: 'Coin<br>Avalanche', w: 20, fn: () => { for (let i = 0; i < 40; i++) queue.push({ at: clock + 0.07 * i, fn: () => launch('coin', rand(16, W - 16), rand(LAND, 380), { dur: 0.45 }) }); return '40 coins pour onto the field'; } },
+  { label: 'Two-Minute<br>Drill', w: 18, fn: () => { S.blitz += 30; S.curtain += 30; return 'Blitz and Steel Curtain for 30 seconds'; } },
+  { label: '1,000<br>Jackpot', w: 6, fn: () => { S.tickets += 1000; sfx.fanfare(true); return '+1,000 tickets!'; } },
+  { label: 'Legend<br>Card', w: 16, fn: () => {
+      const legends = PLAYERS.filter(p => p.tier === 'legend'), miss = legends.filter(p => !S.cards[p.id]);
+      const p = (miss.length ? miss : legends)[Math.floor(Math.random() * (miss.length || legends.length))];
+      S.cards[p.id] = (S.cards[p.id] || 0) + 1; S.tickets += 100; checkSets();
+      toast(p.name + ' card', 'Straight to your locker · +100 tickets', cardCanvas(p.id, 36));
+      return p.name + ' card + 100 tickets'; } },
+  { label: '250 Tix<br>+25 Coins', w: 14, fn: () => { S.tickets += 250; S.bank += 25; return '+250 tickets and 25 coins'; } },
+];
 const wheelEl = $('#wheel');
-PRIZES.forEach((p, i) => {
-  const seg = document.createElement('div'); seg.className = 'seg';
-  seg.style.transform = 'rotate(' + (i * 60 + 30) + 'deg)';
-  const sp = document.createElement('span'); sp.innerHTML = p.label; sp.style.color = i % 2 ? '#111' : '#ffb612';
-  seg.appendChild(sp); wheelEl.appendChild(seg);
-});
-const hub = document.createElement('div'); hub.className = 'hub'; hub.textContent = 'PGH'; wheelEl.appendChild(hub);
 let wheelRot = 0, wheelBusy = false;
-function fieldGoal() {
-  if (wheelBusy || testMode) { S.tickets += 10; toast('It\'s good!', '+10 tickets'); return; }
+function buildWheel(prizes, sb) {
+  wheelEl.innerHTML = '';
+  wheelEl.style.background = sb
+    ? 'conic-gradient(#ffb612 0 60deg, #f5efe1 60deg 120deg, #ffb612 120deg 180deg, #f5efe1 180deg 240deg, #ffb612 240deg 300deg, #f5efe1 300deg 360deg)'
+    : '';
+  prizes.forEach((p, i) => {
+    const seg = document.createElement('div'); seg.className = 'seg';
+    seg.style.transform = 'rotate(' + (i * 60 + 30) + 'deg)';
+    const sp = document.createElement('span'); sp.innerHTML = p.label; sp.style.color = sb ? '#111' : (i % 2 ? '#111' : '#ffb612');
+    seg.appendChild(sp); wheelEl.appendChild(seg);
+  });
+  const hub = document.createElement('div'); hub.className = 'hub'; hub.textContent = sb ? 'SB' : 'PGH'; wheelEl.appendChild(hub);
+}
+function spinWheel(prizes, title, sb, done) {
   wheelBusy = true;
   holding = false; $('#hike').classList.remove('down');
-  sfx.fanfare();
-  const tot = PRIZES.reduce((s, p) => s + p.w, 0);
+  buildWheel(prizes, sb);
+  const tot = prizes.reduce((s, p) => s + p.w, 0);
   let roll = Math.random() * tot, idx = 0;
-  while (roll >= PRIZES[idx].w) { roll -= PRIZES[idx].w; idx++; }
+  while (roll >= prizes[idx].w) { roll -= prizes[idx].w; idx++; }
+  $('#wheelTitle').textContent = title;
   $('#wheelMsg').textContent = 'Spinning…';
+  $('#wheelOv').classList.toggle('sb', !!sb);
   $('#wheelOv').hidden = false;
   const target = 360 - (idx * 60 + 30) + rand(-18, 18);
   const cur = ((wheelRot % 360) + 360) % 360;
-  wheelRot += 360 * 5 + ((target - cur + 360) % 360);
-  requestAnimationFrame(() => { wheelEl.style.transform = 'rotate(' + wheelRot + 'deg)'; });
+  wheelRot += 360 * (sb ? 7 : 5) + ((target - cur + 360) % 360);
+  requestAnimationFrame(() => requestAnimationFrame(() => { wheelEl.style.transform = 'rotate(' + wheelRot + 'deg)'; }));
   const spinMs = matchMedia('(prefers-reduced-motion: reduce)').matches ? 700 : 3300;
   setTimeout(() => {
-    const msg = PRIZES[idx].fn();
-    $('#wheelMsg').textContent = PRIZES[idx].label.replace('<br>', ' ') + ': ' + msg;
+    const msg = prizes[idx].fn();
+    $('#wheelMsg').textContent = prizes[idx].label.replace('<br>', ' ') + ': ' + msg;
     sfx.fanfare(true);
-    updateHud();
-    setTimeout(() => { $('#wheelOv').hidden = true; wheelBusy = false; }, 1500);
+    updateHud(); save();
+    setTimeout(() => { $('#wheelOv').hidden = true; wheelBusy = false; if (done) done(); }, sb ? 2200 : 1500);
   }, spinMs);
+}
+function fieldGoal() {
+  if (wheelBusy || testMode || sbPending) { S.tickets += 10; toast('It\'s good!', '+10 tickets'); return; }
+  sfx.fanfare();
+  spinWheel(PRIZES, 'It\'s Good!', false);
+}
+
+/* ---------- Super Bowl hand ---------- */
+// slot positions in CSS px on the 132x66 hand canvas: index, middle, ring, pinky, thumb
+const SLOTS = [[50, 32], [68, 27], [86, 31], [103, 39], [26, 42]];
+let handShown = 0, sbPending = false;
+const handCv = $('#handCv');
+function drawHand() {
+  const d = Math.min(window.devicePixelRatio || 1, 2);
+  if (handCv.width !== 132 * d) { handCv.width = 132 * d; handCv.height = 66 * d; }
+  const g = handCv.getContext('2d');
+  g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, 132, 66);
+  const fingers = [[50, 10], [68, 5], [86, 9], [103, 20]];
+  const shape = (lw, col) => {
+    g.strokeStyle = col; g.fillStyle = col; g.lineCap = 'round'; g.lineWidth = lw;
+    for (const [x, top] of fingers) { g.beginPath(); g.moveTo(x, 58); g.lineTo(x, top + 7); g.stroke(); }
+    g.beginPath(); g.moveTo(44, 60); g.lineTo(18, 34); g.stroke();
+    const e = (lw - 15) / 2;
+    g.beginPath(); g.roundRect ? g.roundRect(40 - e, 42 - e, 70 + e * 2, 40, 12) : g.rect(40 - e, 42 - e, 70 + e * 2, 40); g.fill();
+  };
+  shape(19, '#ffb612');
+  shape(15, '#2f353f');
+  g.strokeStyle = 'rgba(255,255,255,.06)'; g.lineWidth = 1;
+  for (const [x, top] of fingers) { g.beginPath(); g.moveTo(x - 3, 46); g.lineTo(x - 3, top + 6); g.stroke(); }
+  const shown = S.hand.slice(0, Math.min(5, handShown));
+  SLOTS.forEach(([x, y], i) => {
+    const id = shown[i];
+    if (id && sprites['ring:' + id]) g.drawImage(sprites['ring:' + id], x - 12, y - 12, 24, 24);
+    else { g.setLineDash([2, 2]); g.strokeStyle = 'rgba(255,182,18,.6)'; g.lineWidth = 1.5; g.beginPath(); g.ellipse(x, y, 9, 4, 0, 0, 7); g.stroke(); g.setLineDash([]); }
+  });
+}
+function updateHand() {
+  const n = Math.min(5, handShown);
+  $('#handCount').textContent = n >= 5 ? 'Super Bowl Spin!' : n + ' of 5 rings';
+  $('#handRow').classList.toggle('full', n >= 5);
+  drawHand();
+}
+function flyRing(id, wx) {
+  const slot = SLOTS[Math.min(4, S.hand.length - 1)];
+  const cr = cvs.getBoundingClientRect(), hr = handCv.getBoundingClientRect();
+  const sx = cr.left + (wx - VIEW.x0) * sc, sy = cr.top + (H + 14 - VIEW.y0) * sc;
+  const tx = hr.left + slot[0], ty = hr.top + slot[1];
+  const el = ringCanvas(id, 32); el.className = 'flyring';
+  document.body.appendChild(el);
+  const T = (x, y, k) => 'translate(' + (x - 16) + 'px,' + (y - 16) + 'px) scale(' + k + ')';
+  const done = () => { el.remove(); handShown++; sfx.clink(); haptic(15); updateHand(); if (handShown >= 5) triggerSB(); };
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!el.animate) { done(); return; }
+  el.animate([
+    { transform: T(sx, sy, 1) },
+    { transform: T((sx + tx) / 2, Math.min(sy, ty) - 50, 1.9), offset: 0.45 },
+    { transform: T(tx, ty, 0.7) },
+  ], { duration: reduce ? 250 : 1000, easing: 'ease-in-out', fill: 'forwards' }).onfinish = done;
+}
+function triggerSB() {
+  if (sbPending) return;
+  sbPending = true;
+  updateHand();
+  setTimeout(() => toast('Hand full!', 'Five rings. Time for the Super Bowl Spin!'), 200);
+  const go = () => {
+    if (wheelBusy) { setTimeout(go, 400); return; }
+    spinWheel(SB_PRIZES, 'Super Bowl Spin', true, () => {
+      S.hand = S.hand.slice(5);
+      handShown = Math.min(5, S.hand.length);
+      sbPending = false;
+      updateHand(); save();
+      if (handShown >= 5) triggerSB();
+    });
+  };
+  setTimeout(go, 1200);
 }
 
 /* ---------- Rendering ---------- */
@@ -596,6 +712,7 @@ function drawRing(g, id, r) {
 }
 function buildSprites() {
   sprites = {};
+  queueMicrotask(() => { if (S) drawHand(); });
   { const r = RAD.coin; const [c, g] = off(r * 2, r * 2); drawCoin(g, r); sprites.coin = c; }
   for (const p of PLAYERS) { const [c, g] = off(CARD_W, CARD_H); drawCard(g, p.id, CARD_W, CARD_H); sprites['card:' + p.id] = c; }
   for (const rg of RINGS) { const r = RAD.ring; const [c, g] = off(r * 2, r * 2); drawRing(g, rg.id, r); sprites['ring:' + rg.id] = c; }
@@ -769,7 +886,7 @@ function statusHud() {
   const parts = [];
   if (S.blitz > 0) parts.push('<span class="pill on">Blitz ' + Math.ceil(S.blitz) + 's</span>');
   if (S.curtain > 0) parts.push('<span class="pill on">Steel Curtain ' + Math.ceil(S.curtain) + 's</span>');
-  if (!parts.length) parts.push('<span class="pill hint">Drop through the goalposts to spin the bonus wheel</span>');
+  if (!parts.length) parts.push('<span class="pill hint">Goalposts spin the bonus wheel</span>');
   const html = parts.join('');
   const el = $('#status'); if (el.innerHTML !== html) el.innerHTML = html;
   // tick ticket counter toward value
@@ -859,7 +976,7 @@ function resetArm() { armed = false; resetBtn.classList.remove('armed'); resetBt
 resetBtn.addEventListener('click', () => {
   if (!armed) { armed = true; resetBtn.classList.add('armed'); resetBtn.textContent = 'Tap again to erase everything'; return; }
   const muted = S.muted; S = freshState(); S.muted = muted; shownTix = 0; $('#tix').textContent = '0';
-  seedField(); save(); renderLocker(); updateHud(); resetArm();
+  handShown = 0; seedField(); save(); renderLocker(); updateHud(); updateHand(); resetArm();
 });
 
 /* ---------- Loop ---------- */
@@ -888,12 +1005,15 @@ function boot(data) {
   shownTix = S.tickets; $('#tix').textContent = S.tickets;
   updateHud();
   resize();
+  handShown = Math.min(5, S.hand.length);
+  updateHand();
+  if (handShown >= 5) setTimeout(triggerSB, 800);
   window.addEventListener('resize', resize);
   document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
   window.addEventListener('pagehide', save);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { buildSprites(); buildTable(); });
   try { window.claude?.hot?.snapshot?.(() => serialize()); } catch (e) { /* no hot reload */ }
-  window.__pusher = { step: dt => step(dt), drop: () => { testMode = true; lastDrop = -9; playerDrop(); }, get S() { return S; }, get items() { return items; }, stats };
+  window.__pusher = { step: dt => step(dt), drop: () => { testMode = true; lastDrop = -9; playerDrop(); }, get S() { return S; }, get items() { return items; }, stats, flyRing: id => { S.hand.push(id); flyRing(id, 180); } };
   requestAnimationFrame(frame);
 }
 window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});
